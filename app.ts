@@ -1,1 +1,1 @@
-import "./artifacts/api-server/src/index";
+export { default } from "./artifacts/api-server/src/app";
