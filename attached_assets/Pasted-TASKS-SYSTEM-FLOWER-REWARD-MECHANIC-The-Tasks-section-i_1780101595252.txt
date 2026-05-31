@@ -1,0 +1,101 @@
+TASKS SYSTEM (FLOWER REWARD MECHANIC)
+
+The Tasks section is a shared productivity system where both users contribute to building a “Bloom Garden” through completed tasks.
+
+TASK ASSIGNMENT RULES:
+
+* Every task MUST be assigned to exactly one partner
+* A task cannot be unassigned
+* Tasks belong to either User A or User B
+* Only the assigned user can mark a task as completed
+
+TASK STRUCTURE:
+
+Each task includes:
+
+* Title
+* Description
+* Assigned To (User A or User B)
+* Due Date (optional)
+* Category (Study, Work, Personal, Relationship, etc.)
+* Status (Pending / Completed)
+
+FLOWER PROGRESSION SYSTEM:
+
+The app includes a gamified reward system based on task completion:
+
+* Every time a user completes 1 task → progress increases
+* After completing 4 tasks → a "Bloom Flower" is generated
+
+FLOWER GENERATION RULE:
+
+* Each flower is tied to the user who completed the tasks
+* The flower contains:
+
+  * The user’s name
+  * A unique flower type (rose, peony, tulip, etc.)
+  * Timestamp of creation
+  * Visual bloom animation
+
+FLOWER GIFTING MECHANIC:
+
+Once a flower is created:
+
+* It appears in a "Bloom Inventory"
+* The user who earned it can choose to:
+
+  1. Gift it to their partner
+  2. Keep it in their personal garden
+
+When gifted:
+
+* The flower moves from User A → User B garden (or vice versa)
+* It is displayed as a “gifted bloom” with:
+
+  * Sender name
+  * Small message (optional)
+  * Animation of transfer (floating flower movement)
+
+GARDEN VISUALIZATION:
+
+Each user has a shared “Bloom Garden” view:
+
+* Displays all earned flowers
+* Shows who gifted what
+* Grows visually over time
+
+FLOWER TYPES (rotating system):
+
+* Rose (love / care)
+* Peony (effort / dedication)
+* Tulip (consistency)
+* Daisy (small wins)
+* Cherry blossom (special moments)
+
+GAMIFICATION RULES:
+
+* Only completed tasks count toward flower generation
+* Partial progress is visually shown (e.g., 2/4 tasks)
+* A progress bar is displayed as a blooming stem growing
+* Completing 4 tasks triggers:
+  "A flower has bloomed for [User Name]"
+
+SOCIAL EMOTION DESIGN:
+
+* If one partner is more active, flowers visually balance the garden
+* Gifted flowers represent appreciation between partners
+* Subtle emotional feedback is shown after gifting:
+  e.g. "Your effort was appreciated"
+
+NOTIFICATIONS:
+
+* “You are 1 task away from blooming a flower”
+* “A flower has bloomed for you”
+* “Your partner gifted you a flower”
+
+VISUAL STYLE:
+
+* Flowers must animate when created
+* Soft bloom effects (petal expansion animation)
+* Pastel pink glow on reward moments
+* Gentle floating motion in garden view

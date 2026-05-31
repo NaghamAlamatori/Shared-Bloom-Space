@@ -1,0 +1,1886 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Bloom Together API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: bloomspaces
+    description: Bloom Space operations
+  - name: events
+    description: Calendar events
+  - name: availability
+    description: Availability management
+  - name: votes
+    description: Voting system
+  - name: memories
+    description: Shared memories
+  - name: notes
+    description: Love notes
+  - name: tasks
+    description: Shared tasks
+  - name: focussessions
+    description: Focus sessions
+  - name: profile
+    description: User profile
+  - name: dashboard
+    description: Dashboard data
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # AUTH
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout current user
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                required: [ok]
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current authenticated user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+
+  # BLOOM SPACES
+  /bloomspaces:
+    post:
+      operationId: createBloomSpace
+      tags: [bloomspaces]
+      summary: Create a new Bloom Space
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BloomSpaceInput"
+      responses:
+        "201":
+          description: Bloom Space created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BloomSpace"
+
+  /bloomspaces/join:
+    post:
+      operationId: joinBloomSpace
+      tags: [bloomspaces]
+      summary: Join a Bloom Space via invite code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JoinBloomSpaceInput"
+      responses:
+        "200":
+          description: Joined Bloom Space
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BloomSpace"
+        "404":
+          description: Invalid invite code
+
+  /bloomspaces/mine:
+    get:
+      operationId: getMyBloomSpace
+      tags: [bloomspaces]
+      summary: Get the current user's Bloom Space
+      responses:
+        "200":
+          description: Bloom Space
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BloomSpace"
+        "404":
+          description: No Bloom Space found
+
+  /bloomspaces/{id}/members:
+    get:
+      operationId: getBloomSpaceMembers
+      tags: [bloomspaces]
+      summary: Get members of a Bloom Space
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Members list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  # EVENTS
+  /events:
+    get:
+      operationId: listEvents
+      tags: [events]
+      summary: List all events for the current Bloom Space
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: integer
+        - name: year
+          in: query
+          schema:
+            type: integer
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Events list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+    post:
+      operationId: createEvent
+      tags: [events]
+      summary: Create a new event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventInput"
+      responses:
+        "201":
+          description: Event created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  /events/upcoming:
+    get:
+      operationId: listUpcomingEvents
+      tags: [events]
+      summary: List upcoming events (next 30 days)
+      responses:
+        "200":
+          description: Upcoming events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+
+  /events/{id}:
+    get:
+      operationId: getEvent
+      tags: [events]
+      summary: Get event by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+    patch:
+      operationId: updateEvent
+      tags: [events]
+      summary: Update an event
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventUpdate"
+      responses:
+        "200":
+          description: Updated event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+    delete:
+      operationId: deleteEvent
+      tags: [events]
+      summary: Delete an event
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # AVAILABILITY
+  /availability:
+    get:
+      operationId: listAvailability
+      tags: [availability]
+      summary: Get availability for both members
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Availability slots
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Availability"
+    post:
+      operationId: createAvailability
+      tags: [availability]
+      summary: Mark availability slot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AvailabilityInput"
+      responses:
+        "201":
+          description: Availability created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Availability"
+
+  /availability/overlap:
+    get:
+      operationId: getAvailabilityOverlap
+      tags: [availability]
+      summary: Get overlapping availability between both members
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Overlapping slots
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AvailabilityOverlap"
+
+  /availability/{id}:
+    delete:
+      operationId: deleteAvailability
+      tags: [availability]
+      summary: Remove an availability slot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # VOTES
+  /events/{eventId}/votes:
+    get:
+      operationId: listVotes
+      tags: [votes]
+      summary: List votes for an event
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Votes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vote"
+    post:
+      operationId: createVote
+      tags: [votes]
+      summary: Cast a vote for an event option
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoteInput"
+      responses:
+        "201":
+          description: Vote cast
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vote"
+
+  # MEMORIES
+  /memories:
+    get:
+      operationId: listMemories
+      tags: [memories]
+      summary: List memories for current Bloom Space
+      parameters:
+        - name: view
+          in: query
+          schema:
+            type: string
+            enum: [grid, timeline, masonry]
+      responses:
+        "200":
+          description: Memories list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Memory"
+    post:
+      operationId: createMemory
+      tags: [memories]
+      summary: Create a new memory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemoryInput"
+      responses:
+        "201":
+          description: Memory created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Memory"
+
+  /memories/recent:
+    get:
+      operationId: listRecentMemories
+      tags: [memories]
+      summary: Get the 6 most recent memories
+      responses:
+        "200":
+          description: Recent memories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Memory"
+
+  /memories/search:
+    get:
+      operationId: searchMemories
+      tags: [memories]
+      summary: Search memories by title, location, description, or favorite moments
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Memory"
+
+  /memories/{id}:
+    get:
+      operationId: getMemory
+      tags: [memories]
+      summary: Get a memory by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Memory
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Memory"
+    patch:
+      operationId: updateMemory
+      tags: [memories]
+      summary: Update a memory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemoryUpdate"
+      responses:
+        "200":
+          description: Updated memory
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Memory"
+    delete:
+      operationId: deleteMemory
+      tags: [memories]
+      summary: Delete a memory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /memories/{id}/photos:
+    post:
+      operationId: addMemoryPhoto
+      tags: [memories]
+      summary: Add a photo to a memory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemoryPhotoInput"
+      responses:
+        "201":
+          description: Photo added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemoryPhoto"
+
+  /memories/{memoryId}/photos/{photoId}:
+    patch:
+      operationId: updateMemoryPhoto
+      tags: [memories]
+      summary: Update photo caption or sort order
+      parameters:
+        - name: memoryId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: photoId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemoryPhotoUpdate"
+      responses:
+        "200":
+          description: Updated photo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemoryPhoto"
+    delete:
+      operationId: deleteMemoryPhoto
+      tags: [memories]
+      summary: Remove a photo from a memory
+      parameters:
+        - name: memoryId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: photoId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /memories/{id}/comments:
+    get:
+      operationId: listMemoryComments
+      tags: [memories]
+      summary: List comments on a memory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MemoryComment"
+    post:
+      operationId: addMemoryComment
+      tags: [memories]
+      summary: Add a comment to a memory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemoryCommentInput"
+      responses:
+        "201":
+          description: Comment added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemoryComment"
+
+  /memories/{id}/comments/{commentId}:
+    delete:
+      operationId: deleteMemoryComment
+      tags: [memories]
+      summary: Delete a comment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /memories/{id}/reactions:
+    post:
+      operationId: toggleMemoryReaction
+      tags: [memories]
+      summary: Toggle a reaction on a memory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemoryReactionInput"
+      responses:
+        "200":
+          description: Reactions updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MemoryReaction"
+
+  # NOTES
+  /notes:
+    get:
+      operationId: listNotes
+      tags: [notes]
+      summary: List love notes
+      parameters:
+        - name: pinned
+          in: query
+          schema:
+            type: boolean
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Notes list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Note"
+    post:
+      operationId: createNote
+      tags: [notes]
+      summary: Write a new note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NoteInput"
+      responses:
+        "201":
+          description: Note created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+
+  /notes/{id}:
+    get:
+      operationId: getNote
+      tags: [notes]
+      summary: Get a note by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+    patch:
+      operationId: updateNote
+      tags: [notes]
+      summary: Update a note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NoteUpdate"
+      responses:
+        "200":
+          description: Updated note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+    delete:
+      operationId: deleteNote
+      tags: [notes]
+      summary: Delete a note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /notes/{id}/pin:
+    patch:
+      operationId: toggleNotePin
+      tags: [notes]
+      summary: Toggle pin on a note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+
+  /notes/{id}/react:
+    post:
+      operationId: reactToNote
+      tags: [notes]
+      summary: React to a note with a heart
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+
+  # TASKS
+  /tasks:
+    get:
+      operationId: listTasks
+      tags: [tasks]
+      summary: List shared tasks
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: completed
+          in: query
+          schema:
+            type: boolean
+        - name: assignedTo
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Tasks list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: Create a new task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskInput"
+      responses:
+        "201":
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /tasks/stats:
+    get:
+      operationId: getTaskStats
+      tags: [tasks]
+      summary: Get task completion stats (total, completed, by category)
+      responses:
+        "200":
+          description: Task statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskStats"
+
+  /tasks/{id}:
+    patch:
+      operationId: updateTask
+      tags: [tasks]
+      summary: Update a task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskUpdate"
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+    delete:
+      operationId: deleteTask
+      tags: [tasks]
+      summary: Delete a task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /tasks/{id}/complete:
+    patch:
+      operationId: completeTask
+      tags: [tasks]
+      summary: Toggle task completion (only assigned user may complete)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated task with optional newFlower if a bloom was triggered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompleteTaskResult"
+
+  /tasks/flowers:
+    get:
+      operationId: listBloomFlowers
+      tags: [tasks]
+      summary: List all bloom flowers for the Bloom Space
+      responses:
+        "200":
+          description: Bloom flowers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BloomFlower"
+
+  /tasks/flowers/{flowerId}/gift:
+    post:
+      operationId: giftBloomFlower
+      tags: [tasks]
+      summary: Gift a bloom flower to your partner
+      parameters:
+        - name: flowerId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GiftFlowerInput"
+      responses:
+        "200":
+          description: Gifted flower
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BloomFlower"
+
+  # FOCUS SESSIONS
+  /focus-sessions:
+    get:
+      operationId: listFocusSessions
+      tags: [focussessions]
+      summary: List focus sessions
+      responses:
+        "200":
+          description: Focus sessions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FocusSession"
+    post:
+      operationId: createFocusSession
+      tags: [focussessions]
+      summary: Start a focus session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FocusSessionInput"
+      responses:
+        "201":
+          description: Focus session started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FocusSession"
+
+  /focus-sessions/{id}/end:
+    patch:
+      operationId: endFocusSession
+      tags: [focussessions]
+      summary: End a focus session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FocusSessionEnd"
+      responses:
+        "200":
+          description: Focus session ended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FocusSession"
+
+  # PROFILE
+  /profile:
+    get:
+      operationId: getProfile
+      tags: [profile]
+      summary: Get current user's profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+    patch:
+      operationId: updateProfile
+      tags: [profile]
+      summary: Update current user's profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileUpdate"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+
+  # DASHBOARD
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary data
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/countdown:
+    get:
+      operationId: getNextEventCountdown
+      tags: [dashboard]
+      summary: Get countdown to next event
+      responses:
+        "200":
+          description: Countdown info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventCountdown"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    # AUTH SCHEMAS
+    RegisterInput:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+
+    User:
+      type: object
+      required: [id, name, email]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        bio:
+          type: ["string", "null"]
+        favoriteFlower:
+          type: ["string", "null"]
+        favoriteActivity:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    # BLOOM SPACE SCHEMAS
+    BloomSpaceInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+
+    JoinBloomSpaceInput:
+      type: object
+      required: [inviteCode]
+      properties:
+        inviteCode:
+          type: string
+
+    BloomSpace:
+      type: object
+      required: [id, name, inviteCode, createdBy]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        inviteCode:
+          type: string
+        createdBy:
+          type: integer
+        createdAt:
+          type: string
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+
+    # EVENT SCHEMAS
+    EventInput:
+      type: object
+      required: [title, date, category]
+      properties:
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        date:
+          type: string
+        startTime:
+          type: ["string", "null"]
+        endTime:
+          type: ["string", "null"]
+        location:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        category:
+          type: string
+          enum: [date, hangout, study_session, work_session, trip, birthday, custom]
+        isRecurring:
+          type: boolean
+        recurringPattern:
+          type: ["string", "null"]
+        reminderType:
+          type: ["string", "null"]
+
+    EventUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        date:
+          type: string
+        startTime:
+          type: ["string", "null"]
+        endTime:
+          type: ["string", "null"]
+        location:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        category:
+          type: string
+          enum: [date, hangout, study_session, work_session, trip, birthday, custom]
+        isRecurring:
+          type: boolean
+        reminderType:
+          type: ["string", "null"]
+
+    Event:
+      type: object
+      required: [id, title, date, category, bloomSpaceId]
+      properties:
+        id:
+          type: integer
+        bloomSpaceId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        date:
+          type: string
+        startTime:
+          type: ["string", "null"]
+        endTime:
+          type: ["string", "null"]
+        location:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        category:
+          type: string
+        isRecurring:
+          type: boolean
+        recurringPattern:
+          type: ["string", "null"]
+        reminderType:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    # AVAILABILITY SCHEMAS
+    AvailabilityInput:
+      type: object
+      required: [date, startTime, endTime]
+      properties:
+        date:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+
+    Availability:
+      type: object
+      required: [id, userId, date, startTime, endTime]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        date:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+
+    AvailabilityOverlap:
+      type: object
+      required: [date, startTime, endTime]
+      properties:
+        date:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+        message:
+          type: string
+
+    # VOTE SCHEMAS
+    VoteInput:
+      type: object
+      required: [option]
+      properties:
+        option:
+          type: string
+
+    Vote:
+      type: object
+      required: [id, eventId, userId, option]
+      properties:
+        id:
+          type: integer
+        eventId:
+          type: integer
+        userId:
+          type: integer
+        option:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+
+    # MEMORY SCHEMAS
+    MemoryInput:
+      type: object
+      required: [title, date]
+      properties:
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        date:
+          type: string
+        location:
+          type: ["string", "null"]
+        activityType:
+          type: ["string", "null"]
+        favoriteMoment:
+          type: ["string", "null"]
+        partnerFavoriteMoment:
+          type: ["string", "null"]
+        moodRating:
+          type: ["integer", "null"]
+        coverImageUrl:
+          type: ["string", "null"]
+
+    MemoryUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        date:
+          type: string
+        location:
+          type: ["string", "null"]
+        activityType:
+          type: ["string", "null"]
+        favoriteMoment:
+          type: ["string", "null"]
+        partnerFavoriteMoment:
+          type: ["string", "null"]
+        moodRating:
+          type: ["integer", "null"]
+        coverImageUrl:
+          type: ["string", "null"]
+
+    Memory:
+      type: object
+      required: [id, bloomSpaceId, title, date, createdBy]
+      properties:
+        id:
+          type: integer
+        bloomSpaceId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        date:
+          type: string
+        location:
+          type: ["string", "null"]
+        activityType:
+          type: ["string", "null"]
+        favoriteMoment:
+          type: ["string", "null"]
+        partnerFavoriteMoment:
+          type: ["string", "null"]
+        moodRating:
+          type: ["integer", "null"]
+        coverImageUrl:
+          type: ["string", "null"]
+        createdBy:
+          type: integer
+        createdAt:
+          type: string
+        photos:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemoryPhoto"
+        comments:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemoryComment"
+        reactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemoryReaction"
+        creator:
+          $ref: "#/components/schemas/User"
+        partner:
+          $ref: "#/components/schemas/User"
+
+    MemoryPhotoInput:
+      type: object
+      required: [imageUrl]
+      properties:
+        imageUrl:
+          type: string
+        caption:
+          type: ["string", "null"]
+        sortOrder:
+          type: ["integer", "null"]
+
+    MemoryPhotoUpdate:
+      type: object
+      properties:
+        caption:
+          type: ["string", "null"]
+        sortOrder:
+          type: ["integer", "null"]
+
+    MemoryPhoto:
+      type: object
+      required: [id, memoryId, imageUrl]
+      properties:
+        id:
+          type: integer
+        memoryId:
+          type: integer
+        imageUrl:
+          type: string
+        caption:
+          type: ["string", "null"]
+        sortOrder:
+          type: ["integer", "null"]
+
+    MemoryCommentInput:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+
+    MemoryComment:
+      type: object
+      required: [id, memoryId, userId, content, createdAt]
+      properties:
+        id:
+          type: integer
+        memoryId:
+          type: integer
+        userId:
+          type: integer
+        content:
+          type: string
+        createdAt:
+          type: string
+        author:
+          $ref: "#/components/schemas/User"
+
+    MemoryReactionInput:
+      type: object
+      required: [reactionType]
+      properties:
+        reactionType:
+          type: string
+          enum: [rose, peony, tulip, daisy, heart]
+
+    MemoryReaction:
+      type: object
+      required: [id, memoryId, userId, reactionType]
+      properties:
+        id:
+          type: integer
+        memoryId:
+          type: integer
+        userId:
+          type: integer
+        reactionType:
+          type: string
+
+    # NOTE SCHEMAS
+    NoteInput:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+        style:
+          type: string
+          enum: [sticky, letter, floral]
+
+    NoteUpdate:
+      type: object
+      properties:
+        content:
+          type: string
+        style:
+          type: string
+          enum: [sticky, letter, floral]
+        isPinned:
+          type: boolean
+
+    Note:
+      type: object
+      required: [id, bloomSpaceId, content, createdBy]
+      properties:
+        id:
+          type: integer
+        bloomSpaceId:
+          type: integer
+        content:
+          type: string
+        style:
+          type: string
+        isPinned:
+          type: boolean
+        heartCount:
+          type: integer
+        createdBy:
+          type: integer
+        createdAt:
+          type: string
+        creator:
+          $ref: "#/components/schemas/User"
+
+    # TASK SCHEMAS
+    TaskInput:
+      type: object
+      required: [title, assignedTo]
+      properties:
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        assignedTo:
+          type: integer
+        dueDate:
+          type: ["string", "null"]
+        category:
+          type: string
+          enum: [personal, study, work, travel, relationship, custom]
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        assignedTo:
+          type: ["integer", "null"]
+        dueDate:
+          type: ["string", "null"]
+        category:
+          type: string
+          enum: [personal, study, work, travel, relationship, custom]
+        completed:
+          type: boolean
+
+    Task:
+      type: object
+      required: [id, bloomSpaceId, title, completed]
+      properties:
+        id:
+          type: integer
+        bloomSpaceId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        assignedTo:
+          type: ["integer", "null"]
+        dueDate:
+          type: ["string", "null"]
+        category:
+          type: string
+        completed:
+          type: boolean
+        completedAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        assignee:
+          $ref: "#/components/schemas/User"
+
+    CompleteTaskResult:
+      type: object
+      required: [task]
+      properties:
+        task:
+          $ref: "#/components/schemas/Task"
+        newFlower:
+          $ref: "#/components/schemas/BloomFlower"
+        progressToNext:
+          type: integer
+
+    TaskStats:
+      type: object
+      required: [total, completed, completionRate]
+      properties:
+        total:
+          type: integer
+        completed:
+          type: integer
+        completionRate:
+          type: number
+        byCategory:
+          type: array
+          items:
+            type: object
+            required: [category, total, completed]
+            properties:
+              category:
+                type: string
+              total:
+                type: integer
+              completed:
+                type: integer
+        myProgress:
+          type: object
+          properties:
+            completedCount:
+              type: integer
+            progressToNext:
+              type: integer
+            flowerCount:
+              type: integer
+        partnerProgress:
+          type: object
+          properties:
+            completedCount:
+              type: integer
+            progressToNext:
+              type: integer
+            flowerCount:
+              type: integer
+
+    BloomFlower:
+      type: object
+      required: [id, bloomSpaceId, earnedBy, flowerType, gifted, createdAt]
+      properties:
+        id:
+          type: integer
+        bloomSpaceId:
+          type: integer
+        earnedBy:
+          type: integer
+        flowerType:
+          type: string
+          enum: [rose, peony, tulip, daisy, cherry_blossom]
+        gifted:
+          type: boolean
+        giftedTo:
+          type: ["integer", "null"]
+        giftMessage:
+          type: ["string", "null"]
+        giftedAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        earner:
+          $ref: "#/components/schemas/User"
+        recipient:
+          $ref: "#/components/schemas/User"
+
+    GiftFlowerInput:
+      type: object
+      required: []
+      properties:
+        message:
+          type: ["string", "null"]
+
+    # FOCUS SESSION SCHEMAS
+    FocusSessionInput:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [study, work, pomodoro]
+        notes:
+          type: ["string", "null"]
+
+    FocusSessionEnd:
+      type: object
+      required: [duration]
+      properties:
+        duration:
+          type: integer
+        notes:
+          type: ["string", "null"]
+
+    FocusSession:
+      type: object
+      required: [id, bloomSpaceId, type, startedAt]
+      properties:
+        id:
+          type: integer
+        bloomSpaceId:
+          type: integer
+        type:
+          type: string
+        duration:
+          type: ["integer", "null"]
+        notes:
+          type: ["string", "null"]
+        startedAt:
+          type: string
+        endedAt:
+          type: ["string", "null"]
+        startedBy:
+          type: integer
+
+    # PROFILE SCHEMAS
+    ProfileUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        bio:
+          type: ["string", "null"]
+        favoriteFlower:
+          type: ["string", "null"]
+        favoriteActivity:
+          type: ["string", "null"]
+
+    Profile:
+      type: object
+      required: [id, name, email]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        bio:
+          type: ["string", "null"]
+        favoriteFlower:
+          type: ["string", "null"]
+        favoriteActivity:
+          type: ["string", "null"]
+
+    # DASHBOARD SCHEMAS
+    DashboardSummary:
+      type: object
+      required: [totalMemories, totalNotes, totalTasks, completedTasks, upcomingEvents]
+      properties:
+        totalMemories:
+          type: integer
+        totalNotes:
+          type: integer
+        totalTasks:
+          type: integer
+        completedTasks:
+          type: integer
+        upcomingEvents:
+          type: array
+          items:
+            $ref: "#/components/schemas/Event"
+        recentMemories:
+          type: array
+          items:
+            $ref: "#/components/schemas/Memory"
+        latestNote:
+          $ref: "#/components/schemas/Note"
+        bloomSpaceName:
+          type: string
+        partnerName:
+          type: ["string", "null"]
+        partnerAvatar:
+          type: ["string", "null"]
+        activeFocusSession:
+          $ref: "#/components/schemas/FocusSession"
+        taskCompletionRate:
+          type: number
+
+    EventCountdown:
+      type: object
+      required: [hasNextEvent]
+      properties:
+        hasNextEvent:
+          type: boolean
+        nextEvent:
+          $ref: "#/components/schemas/Event"
+        daysUntil:
+          type: ["integer", "null"]
+        hoursUntil:
+          type: ["integer", "null"]
+        minutesUntil:
+          type: ["integer", "null"]
+        message:
+          type: ["string", "null"]

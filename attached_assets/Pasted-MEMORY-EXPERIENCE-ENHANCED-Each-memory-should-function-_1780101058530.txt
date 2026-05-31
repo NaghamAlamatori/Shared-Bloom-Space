@@ -1,0 +1,125 @@
+MEMORY EXPERIENCE (ENHANCED)
+
+Each memory should function like a shared scrapbook entry.
+
+When creating a memory, users can:
+
+* Upload one image
+* Upload multiple images
+* Reorder images by drag and drop
+* Select a cover image
+* Add captions to individual photos
+* Edit uploaded photos
+* Delete photos
+
+Memory fields:
+
+* Title
+* Date
+* Location
+* Description / Story
+* Mood Rating (1-5 flowers)
+* Activity Type
+* Photo Gallery
+
+SHARED FAVORITE MEMORY FEATURE
+
+Each memory contains a dedicated section called:
+
+"Our Favorite Moments"
+
+Both users can independently write their own favorite memory from that event.
+
+Fields:
+
+User A Favorite Memory
+
+* Rich text
+* Unlimited length
+* Editable
+
+User B Favorite Memory
+
+* Rich text
+* Unlimited length
+* Editable
+
+Display both memories side-by-side on desktop and stacked on mobile.
+
+Example:
+
+Nagham's Favorite Memory:
+"Watching the sunset and laughing about random things."
+
+Partner's Favorite Memory:
+"The moment we almost got lost trying to find the café."
+
+The system should clearly show which memory belongs to which person.
+
+MEMORY TIMELINE
+
+Display all memories in chronological order.
+
+Each memory card should show:
+
+* Cover photo
+* Date
+* Location
+* Number of photos
+* Mood flowers
+* Both profile pictures
+* Preview of favorite memories
+
+SCRAPBOOK VIEW
+
+Opening a memory should feel like opening a beautiful scrapbook page.
+
+Include:
+
+* Floral borders
+* Polaroid-style photos
+* Decorative bows
+* Handwritten-style titles
+* Floating flower petals
+* Elegant animations
+
+COMMENTS
+
+Allow both users to leave comments under memories.
+
+Examples:
+
+* "This was one of my favorite days."
+* "We need to do this again."
+
+MEMORY REACTIONS
+
+Allow reactions:
+
+* Rose
+* Peony
+* Tulip
+* Daisy
+* Heart
+
+MEMORY SEARCH
+
+Search memories by:
+
+* Title
+* Location
+* Date
+* Text content
+* Favorite memories
+
+MEMORY EXPORT
+
+Allow exporting a memory as:
+
+* Printable scrapbook page
+* PDF keepsake
+* Shareable image collage
+
+MEMORY PRIVACY
+
+All memories, photos, comments, and favorite moments are visible only to members of the Bloom Space.
