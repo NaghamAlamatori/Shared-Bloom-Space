@@ -2,6 +2,7 @@
   "name": "workspace",
   "version": "0.0.0",
   "license": "MIT",
+  "main": "app.ts",
   "scripts": {
     "preinstall": "node -e \"const fs = require('fs'); ['package-lock.json','yarn.lock'].forEach(f => { try { fs.unlinkSync(f); } catch(e) {} });\"",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
