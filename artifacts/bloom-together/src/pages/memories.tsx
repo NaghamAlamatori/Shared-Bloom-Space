@@ -728,7 +728,7 @@ export default function Memories() {
   const { data: memories = [], isLoading } = useListMemories(undefined, { query: { queryKey: getListMemoriesQueryKey() } });
   
   // Get partner name from memories or space
-  const partnerName = (memories as FullMemory[]).find(m => m.partner)?.partner?.name || space?.members?.find(m => m.userId !== user?.id)?.user?.name || "Partner";
+  const partnerName = (memories as FullMemory[]).find(m => m.partner)?.partner?.name || space?.members?.find(m => m.id !== user?.id)?.name || "Partner";
 
   // Client-side search filter (fast, no extra API call)
   const filteredMemories = debouncedQ

@@ -12,7 +12,6 @@ import { getGetMeQueryKey } from "@workspace/api-client-react";
 import { useAuth } from "@/lib/auth";
 import { Copy, LogOut, Settings as SettingsIcon, User as UserIcon, Heart } from "lucide-react";
 import { useState, useEffect } from "react";
-import { apiClient } from "@workspace/api-client-react";
 
 const profileSchema = z.object({
   name: z.string().min(1),
