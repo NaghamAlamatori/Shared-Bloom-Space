@@ -52,3 +52,9 @@ Thumbs.db
 .replitignore
 .agents/
 .vscode/
+
+# md
+.fix-prisma-build.md
+.PRISMA_FILES_CREATED.md
+PRISMA_MIGRATION_COMPLETE.md
+START-HERE_PRISMA.md

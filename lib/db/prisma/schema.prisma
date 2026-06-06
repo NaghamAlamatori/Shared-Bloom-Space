@@ -1,0 +1,287 @@
+// Prisma Schema for Shared Bloom Space
+// Database: PostgreSQL (Supabase)
+// Migrated from: Drizzle ORM
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// User Management
+// ============================================
+
+model User {
+  id               Int       @id @default(autoincrement())
+  clerkId          String?   @unique @map("clerk_id")
+  name             String
+  email            String    @unique
+  avatarUrl        String?   @map("avatar_url")
+  bio              String?
+  favoriteFlower   String?   @map("favorite_flower")
+  favoriteActivity String?   @map("favorite_activity")
+  passwordHash     String?   @map("password_hash")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  createdBloomSpaces  BloomSpace[]      @relation("CreatedByUser")
+  members             Member[]
+  createdMemories     Memory[]          @relation("MemoryCreator")
+  memoryComments      MemoryComment[]
+  memoryReactions     MemoryReaction[]
+  createdNotes        Note[]
+  assignedTasks       Task[]            @relation("TaskAssignee")
+  earnedFlowers       BloomFlower[]     @relation("FlowerEarner")
+  giftedFlowers       BloomFlower[]     @relation("FlowerReceiver")
+
+  @@map("users")
+}
+
+// ============================================
+// Bloom Space (Shared Spaces)
+// ============================================
+
+model BloomSpace {
+  id         Int      @id @default(autoincrement())
+  name       String
+  inviteCode String   @unique @map("invite_code")
+  createdBy  Int      @map("created_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  creator        User           @relation("CreatedByUser", fields: [createdBy], references: [id])
+  members        Member[]
+  events         Event[]
+  availabilities Availability[]
+  memories       Memory[]
+  notes          Note[]
+  tasks          Task[]
+  bloomFlowers   BloomFlower[]
+  focusSessions  FocusSession[]
+
+  @@map("bloom_spaces")
+}
+
+model Member {
+  id                 Int      @id @default(autoincrement())
+  userId             Int      @map("user_id")
+  bloomSpaceId       Int      @map("bloom_space_id")
+  nicknameForPartner String?  @map("nickname_for_partner")
+  joinedAt           DateTime @default(now()) @map("joined_at")
+
+  // Relations
+  user       User       @relation(fields: [userId], references: [id])
+  bloomSpace BloomSpace @relation(fields: [bloomSpaceId], references: [id])
+
+  @@map("members")
+}
+
+// ============================================
+// Events & Calendar
+// ============================================
+
+model Event {
+  id               Int      @id @default(autoincrement())
+  bloomSpaceId     Int      @map("bloom_space_id")
+  title            String
+  description      String?
+  date             String
+  startTime        String?  @map("start_time")
+  endTime          String?  @map("end_time")
+  location         String?
+  notes            String?
+  category         String   @default("custom")
+  isRecurring      Boolean  @default(false) @map("is_recurring")
+  recurringPattern String?  @map("recurring_pattern")
+  reminderType     String?  @map("reminder_type")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  // Relations
+  bloomSpace BloomSpace @relation(fields: [bloomSpaceId], references: [id])
+  votes      Vote[]
+
+  @@map("events")
+}
+
+model Availability {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  bloomSpaceId Int      @map("bloom_space_id")
+  date         String
+  startTime    String   @map("start_time")
+  endTime      String   @map("end_time")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  bloomSpace BloomSpace @relation(fields: [bloomSpaceId], references: [id])
+
+  @@map("availability")
+}
+
+model Vote {
+  id        Int      @id @default(autoincrement())
+  eventId   Int      @map("event_id")
+  userId    Int      @map("user_id")
+  option    String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@map("votes")
+}
+
+// ============================================
+// Memories
+// ============================================
+
+model Memory {
+  id                     Int      @id @default(autoincrement())
+  bloomSpaceId           Int      @map("bloom_space_id")
+  title                  String
+  description            String?
+  date                   String
+  location               String?
+  activityType           String?  @map("activity_type")
+  favoriteMoment         String?  @map("favorite_moment")
+  partnerFavoriteMoment  String?  @map("partner_favorite_moment")
+  moodRating             Int?     @map("mood_rating")
+  coverImageUrl          String?  @map("cover_image_url")
+  createdBy              Int      @map("created_by")
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  // Relations
+  bloomSpace      BloomSpace       @relation(fields: [bloomSpaceId], references: [id])
+  creator         User             @relation("MemoryCreator", fields: [createdBy], references: [id])
+  photos          MemoryPhoto[]
+  comments        MemoryComment[]
+  reactions       MemoryReaction[]
+
+  @@map("memories")
+}
+
+model MemoryPhoto {
+  id        Int      @id @default(autoincrement())
+  memoryId  Int      @map("memory_id")
+  imageUrl  String   @map("image_url")
+  caption   String?
+  sortOrder Int?     @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  memory Memory @relation(fields: [memoryId], references: [id])
+
+  @@map("memory_photos")
+}
+
+model MemoryComment {
+  id        Int      @id @default(autoincrement())
+  memoryId  Int      @map("memory_id")
+  userId    Int      @map("user_id")
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  memory Memory @relation(fields: [memoryId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("memory_comments")
+}
+
+model MemoryReaction {
+  id           Int      @id @default(autoincrement())
+  memoryId     Int      @map("memory_id")
+  userId       Int      @map("user_id")
+  reactionType String   @map("reaction_type")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  memory Memory @relation(fields: [memoryId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("memory_reactions")
+}
+
+// ============================================
+// Notes
+// ============================================
+
+model Note {
+  id           Int      @id @default(autoincrement())
+  bloomSpaceId Int      @map("bloom_space_id")
+  content      String
+  style        String   @default("sticky")
+  isPinned     Boolean  @default(false) @map("is_pinned")
+  heartCount   Int      @default(0) @map("heart_count")
+  createdBy    Int      @map("created_by")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  bloomSpace BloomSpace @relation(fields: [bloomSpaceId], references: [id])
+  creator    User       @relation(fields: [createdBy], references: [id])
+
+  @@map("notes")
+}
+
+// ============================================
+// Tasks & Productivity
+// ============================================
+
+model Task {
+  id           Int       @id @default(autoincrement())
+  bloomSpaceId Int       @map("bloom_space_id")
+  title        String
+  description  String?
+  assignedTo   Int?      @map("assigned_to")
+  dueDate      String?   @map("due_date")
+  category     String    @default("personal")
+  completed    Boolean   @default(false)
+  completedAt  DateTime? @map("completed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  bloomSpace BloomSpace @relation(fields: [bloomSpaceId], references: [id])
+  assignee   User?      @relation("TaskAssignee", fields: [assignedTo], references: [id])
+
+  @@map("tasks")
+}
+
+model BloomFlower {
+  id          Int       @id @default(autoincrement())
+  bloomSpaceId Int      @map("bloom_space_id")
+  earnedBy    Int       @map("earned_by")
+  flowerType  String    @map("flower_type")
+  gifted      Boolean   @default(false)
+  giftedTo    Int?      @map("gifted_to")
+  giftMessage String?   @map("gift_message")
+  giftedAt    DateTime? @map("gifted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  bloomSpace BloomSpace @relation(fields: [bloomSpaceId], references: [id])
+  earner     User       @relation("FlowerEarner", fields: [earnedBy], references: [id])
+  receiver   User?      @relation("FlowerReceiver", fields: [giftedTo], references: [id])
+
+  @@map("bloom_flowers")
+}
+
+model FocusSession {
+  id           Int       @id @default(autoincrement())
+  bloomSpaceId Int       @map("bloom_space_id")
+  type         String    @default("study")
+  duration     Int?
+  notes        String?
+  startedBy    Int       @map("started_by")
+  startedAt    DateTime  @default(now()) @map("started_at")
+  endedAt      DateTime? @map("ended_at")
+
+  // Relations
+  bloomSpace BloomSpace @relation(fields: [bloomSpaceId], references: [id])
+
+  @@map("focus_sessions")
+}
